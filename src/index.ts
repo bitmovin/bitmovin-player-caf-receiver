@@ -42,6 +42,8 @@ export default class CAFReceiver {
   private setDRM(loadRequestData: LoadRequestData): LoadRequestData {
     const protectionSystem = loadRequestData.media.customData.drm.protectionSystem;
     const licenseUrl = loadRequestData.media.customData.drm.licenseUrl;
+    const withCredentials = loadRequestData.media.customData.drm.withCredentials;
+
     this.context.getPlayerManager().setMediaPlaybackInfoHandler((_loadRequest, playbackConfig) => {
       playbackConfig.licenseUrl = licenseUrl;
       playbackConfig.protectionSystem =  protectionSystem;
@@ -50,6 +52,10 @@ export default class CAFReceiver {
         playbackConfig.licenseRequestHandler = requestInfo => {
           requestInfo.headers = loadRequestData.media.customData.drm.headers;
         };
+      }
+
+      if (withCredentials) {
+        playbackConfig.licenseRequestHandler = setWithCredentialsFlag;
       }
 
       return playbackConfig;
