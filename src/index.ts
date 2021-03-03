@@ -1,4 +1,4 @@
-import { CastReceiverContext, PlayerManager } from 'chromecast-caf-receiver/cast.framework';
+import { CastReceiverContext, NetworkRequestInfo, PlayerManager } from 'chromecast-caf-receiver/cast.framework';
 import { LoadRequestData } from 'chromecast-caf-receiver/cast.framework.messages';
 
 const CAST_MESSAGE_NAMESPACE = 'urn:x-cast:com.bitmovin.player.caf';
@@ -26,8 +26,14 @@ export default class CAFReceiver {
 
   // Setup DRM if present in `media.customData`
   private readonly onLoad = (loadRequestData: LoadRequestData): LoadRequestData => {
-    if (loadRequestData.media.customData && loadRequestData.media.customData.drm) {
-      return this.setDRM(loadRequestData);
+    if (loadRequestData.media.customData) {
+      if (loadRequestData.media.customData.options) {
+        this.setWithCredentials(loadRequestData.media.customData.options);
+      }
+
+      if (loadRequestData.media.customData.drm) {
+        return this.setDRM(loadRequestData);
+      }
     }
 
     return loadRequestData;
@@ -52,7 +58,26 @@ export default class CAFReceiver {
     return loadRequestData;
   }
 
+  private setWithCredentials(options): void {
+    const playerManager = this.context.getPlayerManager();
+    const playbackConfig = Object.assign(new cast.framework.PlaybackConfig(), playerManager.getPlaybackConfig());
+
+    if (options.withCredentials) {
+      playbackConfig.manifestRequestHandler = setWithCredentialsFlag;
+    }
+
+    if (options.manifestWithCredentials) {
+      playbackConfig.segmentRequestHandler = setWithCredentialsFlag;
+    }
+
+    playerManager.setPlaybackConfig(playbackConfig);
+  }
+
   private readonly onCustomMessage = (message: cast.framework.system.Event) => {
     console.log('Received custom channel message', message);
   }
+}
+
+function setWithCredentialsFlag(requestInfo: NetworkRequestInfo): void {
+  requestInfo.withCredentials = true;
 }
