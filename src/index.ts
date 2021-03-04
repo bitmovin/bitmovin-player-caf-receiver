@@ -76,6 +76,7 @@ export default class CAFReceiver {
 
     if (options.manifestWithCredentials) {
       playbackConfig.segmentRequestHandler = setWithCredentialsFlag;
+      playbackConfig.captionsRequestHandler = setWithCredentialsFlag;
     }
 
     playerManager.setPlaybackConfig(playbackConfig);
