@@ -1,5 +1,6 @@
-import { CastReceiverContext, NetworkRequestInfo, PlayerManager } from 'chromecast-caf-receiver/cast.framework';
+import { CastReceiverContext, ContentProtection, NetworkRequestInfo, PlayerManager } from 'chromecast-caf-receiver/cast.framework';
 import { LoadRequestData } from 'chromecast-caf-receiver/cast.framework.messages';
+import { CAFMediaInfoCustomData, CAFSourceOptions } from 'bitmovin-player';
 
 const CAST_MESSAGE_NAMESPACE = 'urn:x-cast:com.bitmovin.player.caf';
 
@@ -26,31 +27,32 @@ export default class CAFReceiver {
 
   // Setup DRM if present in `media.customData`
   private readonly onLoad = (loadRequestData: LoadRequestData): LoadRequestData => {
-    if (loadRequestData.media.customData) {
-      if (loadRequestData.media.customData.options) {
-        this.setWithCredentials(loadRequestData.media.customData.options);
+    const customData = loadRequestData.media.customData as CAFMediaInfoCustomData;
+
+    if (customData) {
+      if (customData.options) {
+        this.setWithCredentials(customData.options);
       }
 
-      if (loadRequestData.media.customData.drm) {
+      if (customData.drm) {
         return this.setDRM(loadRequestData);
       }
     }
 
     return loadRequestData;
-  }
+  };
 
   private setDRM(loadRequestData: LoadRequestData): LoadRequestData {
-    const protectionSystem = loadRequestData.media.customData.drm.protectionSystem;
-    const licenseUrl = loadRequestData.media.customData.drm.licenseUrl;
-    const withCredentials = loadRequestData.media.customData.drm.withCredentials;
+    const customData = loadRequestData.media.customData as CAFMediaInfoCustomData;
+    const { protectionSystem, licenseUrl, headers, withCredentials } = customData.drm;
 
     this.context.getPlayerManager().setMediaPlaybackInfoHandler((_loadRequest, playbackConfig) => {
       playbackConfig.licenseUrl = licenseUrl;
-      playbackConfig.protectionSystem =  protectionSystem;
+      playbackConfig.protectionSystem = protectionSystem as ContentProtection;
 
-      if (typeof loadRequestData.media.customData.drm.headers === 'object') {
-        playbackConfig.licenseRequestHandler = requestInfo => {
-          requestInfo.headers = loadRequestData.media.customData.drm.headers;
+      if (typeof headers === 'object') {
+        playbackConfig.licenseRequestHandler = (requestInfo) => {
+          requestInfo.headers = headers;
         };
       }
 
@@ -64,7 +66,7 @@ export default class CAFReceiver {
     return loadRequestData;
   }
 
-  private setWithCredentials(options): void {
+  private setWithCredentials(options: CAFSourceOptions): void {
     const playerManager = this.context.getPlayerManager();
     const playbackConfig = Object.assign(new cast.framework.PlaybackConfig(), playerManager.getPlaybackConfig());
 
@@ -81,7 +83,7 @@ export default class CAFReceiver {
 
   private readonly onCustomMessage = (message: cast.framework.system.Event) => {
     console.log('Received custom channel message', message);
-  }
+  };
 }
 
 function setWithCredentialsFlag(requestInfo: NetworkRequestInfo): void {
