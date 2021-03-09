@@ -1,6 +1,6 @@
 import { CastReceiverContext, ContentProtection, NetworkRequestInfo, PlayerManager } from 'chromecast-caf-receiver/cast.framework';
 import { LoadRequestData } from 'chromecast-caf-receiver/cast.framework.messages';
-import { CAFMediaInfoCustomData, CAFSourceOptions } from 'bitmovin-player';
+import { CAFDrmConfig, CAFMediaInfoCustomData, CAFSourceOptions } from 'bitmovin-player';
 
 const CAST_MESSAGE_NAMESPACE = 'urn:x-cast:com.bitmovin.player.caf';
 
@@ -35,17 +35,14 @@ export default class CAFReceiver {
       }
 
       if (customData.drm) {
-        return this.setDRM(loadRequestData);
+        this.setDRM(customData.drm);
       }
     }
 
     return loadRequestData;
   };
 
-  private setDRM(loadRequestData: LoadRequestData): LoadRequestData {
-    const customData = loadRequestData.media.customData as CAFMediaInfoCustomData;
-    const { protectionSystem, licenseUrl, headers, withCredentials } = customData.drm;
-
+  private setDRM({ protectionSystem, licenseUrl, headers, withCredentials }: CAFDrmConfig): void {
     this.context.getPlayerManager().setMediaPlaybackInfoHandler((_loadRequest, playbackConfig) => {
       playbackConfig.licenseUrl = licenseUrl;
       playbackConfig.protectionSystem = protectionSystem as ContentProtection;
@@ -62,8 +59,6 @@ export default class CAFReceiver {
 
       return playbackConfig;
     });
-
-    return loadRequestData;
   }
 
   private setWithCredentials(options: CAFSourceOptions): void {
