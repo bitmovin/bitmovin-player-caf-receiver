@@ -66,12 +66,12 @@ export default class CAFReceiver {
     const playbackConfig = Object.assign(new cast.framework.PlaybackConfig(), playerManager.getPlaybackConfig());
 
     if (options.withCredentials) {
-      playbackConfig.manifestRequestHandler = setWithCredentialsFlag;
+      playbackConfig.segmentRequestHandler = setWithCredentialsFlag;
+      playbackConfig.captionsRequestHandler = setWithCredentialsFlag;
     }
 
     if (options.manifestWithCredentials) {
-      playbackConfig.segmentRequestHandler = setWithCredentialsFlag;
-      playbackConfig.captionsRequestHandler = setWithCredentialsFlag;
+      playbackConfig.manifestRequestHandler = setWithCredentialsFlag;
     }
 
     playerManager.setPlaybackConfig(playbackConfig);
