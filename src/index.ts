@@ -25,7 +25,6 @@ export default class CAFReceiver {
     this.context.addCustomMessageListener(CAST_MESSAGE_NAMESPACE, this.onCustomMessage);
   }
 
-  // Setup DRM if present in `media.customData`
   private readonly onLoad = (loadRequestData: LoadRequestData): LoadRequestData => {
     const customData = loadRequestData.media.customData as CAFMediaInfoCustomData;
 
