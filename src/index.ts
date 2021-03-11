@@ -28,14 +28,12 @@ export default class CAFReceiver {
   private readonly onLoad = (loadRequestData: LoadRequestData): LoadRequestData => {
     const customData = loadRequestData.media.customData as CAFMediaInfoCustomData;
 
-    if (customData) {
-      if (customData.options) {
-        this.setWithCredentials(customData.options);
-      }
+    if (customData?.options) {
+      this.setWithCredentials(customData.options);
+    }
 
-      if (customData.drm) {
-        this.setDRM(customData.drm);
-      }
+    if (customData?.drm) {
+      this.setDRM(customData.drm);
     }
 
     return loadRequestData;
