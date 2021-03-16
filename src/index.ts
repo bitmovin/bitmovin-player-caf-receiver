@@ -1,5 +1,6 @@
-import { CastReceiverContext, PlayerManager } from 'chromecast-caf-receiver/cast.framework';
+import { CastReceiverContext, ContentProtection, NetworkRequestInfo, PlayerManager } from 'chromecast-caf-receiver/cast.framework';
 import { LoadRequestData } from 'chromecast-caf-receiver/cast.framework.messages';
+import { CAFDrmConfig, CAFMediaInfoCustomData, CAFSourceOptions } from 'bitmovin-player';
 
 const CAST_MESSAGE_NAMESPACE = 'urn:x-cast:com.bitmovin.player.caf';
 
@@ -24,35 +25,60 @@ export default class CAFReceiver {
     this.context.addCustomMessageListener(CAST_MESSAGE_NAMESPACE, this.onCustomMessage);
   }
 
-  // Setup DRM if present in `media.customData`
   private readonly onLoad = (loadRequestData: LoadRequestData): LoadRequestData => {
-    if (loadRequestData.media.customData && loadRequestData.media.customData.drm) {
-      return this.setDRM(loadRequestData);
+    const customData = loadRequestData.media.customData as CAFMediaInfoCustomData;
+
+    if (customData?.options) {
+      this.setWithCredentials(customData.options);
+    }
+
+    if (customData?.drm) {
+      this.setDRM(customData.drm);
     }
 
     return loadRequestData;
-  }
+  };
 
-  private setDRM(loadRequestData: LoadRequestData): LoadRequestData {
-    const protectionSystem = loadRequestData.media.customData.drm.protectionSystem;
-    const licenseUrl = loadRequestData.media.customData.drm.licenseUrl;
+  private setDRM({ protectionSystem, licenseUrl, headers, withCredentials }: CAFDrmConfig): void {
     this.context.getPlayerManager().setMediaPlaybackInfoHandler((_loadRequest, playbackConfig) => {
       playbackConfig.licenseUrl = licenseUrl;
-      playbackConfig.protectionSystem =  protectionSystem;
+      playbackConfig.protectionSystem = protectionSystem as ContentProtection;
 
-      if (typeof loadRequestData.media.customData.drm.headers === 'object') {
-        playbackConfig.licenseRequestHandler = requestInfo => {
-          requestInfo.headers = loadRequestData.media.customData.drm.headers;
+      if (typeof headers === 'object') {
+        playbackConfig.licenseRequestHandler = (requestInfo) => {
+          requestInfo.headers = headers;
         };
+      }
+
+      if (withCredentials) {
+        playbackConfig.licenseRequestHandler = setWithCredentialsFlag;
       }
 
       return playbackConfig;
     });
+  }
 
-    return loadRequestData;
+  private setWithCredentials(options: CAFSourceOptions): void {
+    const playerManager = this.context.getPlayerManager();
+    const playbackConfig = Object.assign(new cast.framework.PlaybackConfig(), playerManager.getPlaybackConfig());
+
+    if (options.withCredentials) {
+      playbackConfig.segmentRequestHandler = setWithCredentialsFlag;
+      playbackConfig.captionsRequestHandler = setWithCredentialsFlag;
+    }
+
+    if (options.manifestWithCredentials) {
+      playbackConfig.manifestRequestHandler = setWithCredentialsFlag;
+    }
+
+    playerManager.setPlaybackConfig(playbackConfig);
   }
 
   private readonly onCustomMessage = (message: cast.framework.system.Event) => {
     console.log('Received custom channel message', message);
-  }
+  };
+}
+
+function setWithCredentialsFlag(requestInfo: NetworkRequestInfo): void {
+  requestInfo.withCredentials = true;
 }
