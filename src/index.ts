@@ -2,7 +2,7 @@ import { CastReceiverContext, ContentProtection, NetworkRequestInfo, PlayerManag
 import { LoadRequestData } from 'chromecast-caf-receiver/cast.framework.messages';
 import { CAFDrmConfig, CAFMediaInfoCustomData, CAFSourceOptions } from 'bitmovin-player';
 
-const CAST_MESSAGE_NAMESPACE = 'urn:x-cast:com.bitmovin.player.caf';
+const CAST_MESSAGE_NAMESPACE = 'urn:x-cast:com.bitmovin.player.cast';
 
 export default class CAFReceiver {
   private readonly player: PlayerManager;
