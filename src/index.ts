@@ -4,6 +4,23 @@ import { CAFDrmConfig, CAFMediaInfoCustomData, CAFSourceOptions } from 'bitmovin
 
 const CAST_MESSAGE_NAMESPACE = 'urn:x-cast:com.bitmovin.player.cast';
 
+export interface RemoteControlReceiverMessage {
+  type: RemoteControlReceiverMessageType;
+  data: any;
+}
+
+export enum RemoteControlReceiverMessageType {
+  PlayerState,
+  PlayerEvent,
+  PlayerGetterCallReturnValue,
+}
+
+export enum PlayerEvent {
+  Playing = 'playing',
+  Seek = 'seek',
+  Seeked = 'seeked',
+}
+
 export default class CAFReceiver {
   private readonly player: PlayerManager;
   private readonly context: CastReceiverContext;
@@ -22,6 +39,9 @@ export default class CAFReceiver {
 
   private attachEvents() {
     this.player.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, this.onLoad);
+    this.player.addEventListener(cast.framework.events.EventType.PLAYING, () => this.relayPlayerEvent(PlayerEvent.Playing));
+    this.player.addEventListener(cast.framework.events.EventType.REQUEST_SEEK, () => this.relayPlayerEvent(PlayerEvent.Seek));
+    this.player.addEventListener(cast.framework.events.EventType.SEEKED, () => this.relayPlayerEvent(PlayerEvent.Seeked));
     this.context.addCustomMessageListener(CAST_MESSAGE_NAMESPACE, this.onCustomMessage);
   }
 
@@ -73,6 +93,15 @@ export default class CAFReceiver {
 
     playerManager.setPlaybackConfig(playbackConfig);
   }
+
+  private relayPlayerEvent(event: PlayerEvent): void {
+    const playerEventMessage: RemoteControlReceiverMessage = {
+      type: RemoteControlReceiverMessageType.PlayerEvent,
+      data: { event },
+    };
+    
+    this.context.sendCustomMessage(CAST_MESSAGE_NAMESPACE, undefined, playerEventMessage);
+  };
 
   private readonly onCustomMessage = (message: cast.framework.system.Event) => {
     console.log('Received custom channel message', message);
