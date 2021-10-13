@@ -39,7 +39,6 @@ export default class CAFReceiver {
 
   private attachEvents() {
     this.player.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, this.onLoad);
-    this.player.addEventListener(cast.framework.events.EventType.PLAYING, () => this.relayPlayerEvent(PlayerEvent.Playing));
     this.player.addEventListener(cast.framework.events.EventType.REQUEST_SEEK, () => this.relayPlayerEvent(PlayerEvent.Seek));
     this.player.addEventListener(cast.framework.events.EventType.SEEKED, () => this.relayPlayerEvent(PlayerEvent.Seeked));
     this.context.addCustomMessageListener(CAST_MESSAGE_NAMESPACE, this.onCustomMessage);
