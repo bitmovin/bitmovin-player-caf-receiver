@@ -17,7 +17,26 @@ export default class CAFReceiver {
     // cast.framework.CastReceiverContext.getInstance().setLoggerLevel(cast.framework.LoggerLevel.DEBUG);
 
     this.attachEvents();
+    this.setPlaybackConfig();
+    
     this.context.start();
+  }
+
+  // This is an example on how to set the ShakaConfig settings
+  // See https://shaka-player-demo.appspot.com/docs/api/shaka.extern.html#.PlayerConfiguration 
+  // For showcasing is hardcoded on the receiver side
+  // Ideally the ShakaConfig or PlaybackConfig should come from the sender side for example as part of the `customData`
+  private setPlaybackConfig() {
+    const shakaConfig = {
+      restrictions: {
+        maxHeight: 300
+      }
+    }
+
+    const playbackConfig = new cast.framework.PlaybackConfig();
+    (playbackConfig as any).shakaConfig = shakaConfig;
+
+    this.player.setPlaybackConfig(playbackConfig);
   }
 
   private attachEvents() {
