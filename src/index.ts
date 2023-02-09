@@ -44,7 +44,7 @@ export default class CAFReceiver {
       playbackConfig.licenseUrl = licenseUrl;
       playbackConfig.protectionSystem = protectionSystem as ContentProtection;
 
-      if (typeof headers === 'object') {
+      if (headers && typeof headers === 'object') {
         playbackConfig.licenseRequestHandler = (requestInfo) => {
           requestInfo.headers = headers;
         };
