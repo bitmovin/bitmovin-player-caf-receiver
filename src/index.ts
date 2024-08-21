@@ -22,7 +22,13 @@ export default class CAFReceiver {
     // cast.framework.CastReceiverContext.getInstance().setLoggerLevel(cast.framework.LoggerLevel.DEBUG);
 
     this.attachEvents();
-    this.context.start();
+
+    const options = new cast.framework.CastReceiverOptions();
+    options.useShakaForHls = true;
+    // options.shakaVersion = '4.3.5';
+    // options.shakaVariant = cast.framework.ShakaVariant.DEBUG;
+
+    this.context.start(options);
   }
 
   private attachEvents() {
