@@ -9,7 +9,7 @@
     "build": "webpack --env prod --mode production"
   },
   "devDependencies": {
-    "@types/chromecast-caf-receiver": "^5.0.9",
+    "@types/chromecast-caf-receiver": "^6.0.17",
     "bitmovin-player": "^8.56.0",
     "html-webpack-plugin": "^4.3.0",
     "prettier": "^2.1.1",
