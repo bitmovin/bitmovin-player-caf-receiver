@@ -7,7 +7,7 @@ import {
 } from 'chromecast-caf-receiver/cast.framework';
 import type { RequestData } from 'chromecast-caf-receiver/cast.framework.messages';
 import { LoadRequestData } from 'chromecast-caf-receiver/cast.framework.messages';
-import type { Event } from 'chromecast-caf-receiver/cast.framework.system';
+import type { Event, Message } from 'chromecast-caf-receiver/cast.framework.system';
 
 const CAST_MESSAGE_NAMESPACE = 'urn:x-cast:com.bitmovin.player.caf';
 
@@ -97,7 +97,7 @@ export default class CAFReceiver {
     playerManager.setPlaybackConfig(playbackConfig);
   }
 
-  private readonly onCustomMessage = (message: Event) => {
+  private readonly onCustomMessage: CustomMessageHandler = (message: Message) => {
     console.log('Received custom channel message', message);
   };
 }
