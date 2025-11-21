@@ -7,7 +7,7 @@ import {
 } from 'chromecast-caf-receiver/cast.framework';
 import type { RequestData } from 'chromecast-caf-receiver/cast.framework.messages';
 import { LoadRequestData } from 'chromecast-caf-receiver/cast.framework.messages';
-import type { Event, Message } from 'chromecast-caf-receiver/cast.framework.system';
+import type { Message } from 'chromecast-caf-receiver/cast.framework.system';
 
 const CAST_MESSAGE_NAMESPACE = 'urn:x-cast:com.bitmovin.player.caf';
 
@@ -17,6 +17,7 @@ export default class CAFReceiver {
 
   constructor() {
     this.context = cast.framework.CastReceiverContext.getInstance();
+
     this.player = this.context.getPlayerManager();
   }
 
@@ -24,7 +25,11 @@ export default class CAFReceiver {
     // cast.framework.CastReceiverContext.getInstance().setLoggerLevel(cast.framework.LoggerLevel.DEBUG);
 
     this.attachEvents();
-    this.context.start();
+
+    const castReceiverOptions = new cast.framework.CastReceiverOptions();
+    castReceiverOptions.useShakaForHls = true;
+    
+    this.context.start(castReceiverOptions);
   }
 
   private attachEvents() {
